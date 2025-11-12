@@ -1,14 +1,15 @@
-# Використовуємо легкий Nginx
-FROM nginx:alpine
+# Stage 1: Build React app
+FROM node:18 AS build
+WORKDIR /app
+COPY package.json ./
+RUN npm install
+COPY . .
+RUN npm run build
 
-# Копіюємо нашу конфігурацію nginx
-COPY nginx.conf /etc/nginx/nginx.conf
+# Stage 2: Serve with NGINX
+FROM nginx:1.25-alpine
+COPY --from=build /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Копіюємо фронтенд файли
-COPY . /usr/share/nginx/html
-
-# Порт для Nginx
 EXPOSE 80
-
 CMD ["nginx", "-g", "daemon off;"]
-
