@@ -21,6 +21,10 @@ export default function KanbanBoard() {
     const [newTaskTitle, setNewTaskTitle] = useState("");
     const [newTaskDesc, setNewTaskDesc] = useState("");
 
+    const [editingTask, setEditingTask] = useState(null);
+    const [editTitle, setEditTitle] = useState("");
+    const [editDesc, setEditDesc] = useState("");
+
     useEffect(() => {
         fetch(API_URL)
             .then((res) => res.json())
@@ -100,6 +104,38 @@ export default function KanbanBoard() {
         setNewTaskDesc("");
     };
 
+    const handleEditTask = (task) => {
+        setEditingTask(task);
+        setEditTitle(task.title);
+        setEditDesc(task.description);
+    };
+
+    const handleUpdateTask = async () => {
+        const updated = {...editingTask, title: editTitle, description: editDesc};
+
+        try {
+            const res = await fetch(`${API_URL}/${editingTask.id}`, {
+                method: "PUT",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(updated),
+            });
+
+            if (!res.ok) throw new Error("Failed to update task");
+
+            const saved = await res.json();
+            setTasks((prev) => prev.map((t) => (t.id === saved.id ? saved : t)));
+            socket.emit("task-updated", saved);
+            setEditingTask(null);
+        } catch (e) {
+            console.error("Error updating task:", e);
+        }
+    };
+
+    const handleDeleteTask = (id) => {
+        setTaskToDelete(id);
+        setShowModal(true);
+    };
+
     const confirmDeleteTask = async () => {
         if (!taskToDelete) return;
         try {
@@ -117,11 +153,9 @@ export default function KanbanBoard() {
     return (
         <div className="kanban-board">
             <div className="board-header">
-                <div className="header-left">
-                    <button onClick={() => setShowCreateModal(true)} className="add-task">
-                        + Add Task
-                    </button>
-                </div>
+                <button onClick={() => setShowCreateModal(true)} className="add-task">
+                    + Add Task
+                </button>
             </div>
 
             <DragDropContext onDragEnd={handleDragEnd}>
@@ -152,16 +186,22 @@ export default function KanbanBoard() {
                                                     >
                                                         <div className="task-header">
                                                             <strong>{task.title}</strong>
-                                                            <button
-                                                                className="delete-btn"
-                                                                onClick={() => {
-                                                                    setTaskToDelete(task.id);
-                                                                    setShowModal(true);
-                                                                }}
-                                                                title="Delete task"
-                                                            >
-                                                                🗑️
-                                                            </button>
+                                                            <div className="task-actions">
+                                                                <button
+                                                                    className="edit-btn"
+                                                                    onClick={() => handleEditTask(task)}
+                                                                    title="Edit task"
+                                                                >
+                                                                    ✏️
+                                                                </button>
+                                                                <button
+                                                                    className="delete-btn"
+                                                                    onClick={() => handleDeleteTask(task.id)}
+                                                                    title="Delete task"
+                                                                >
+                                                                    🗑️
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                         <p>{task.description}</p>
                                                     </div>
@@ -215,10 +255,35 @@ export default function KanbanBoard() {
                             <button className="confirm-btn" onClick={handleCreateTask}>
                                 Create
                             </button>
-                            <button
-                                className="cancel-btn"
-                                onClick={() => setShowCreateModal(false)}
-                            >
+                            <button className="cancel-btn" onClick={() => setShowCreateModal(false)}>
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Task Modal */}
+            {editingTask && (
+                <div className="modal-overlay">
+                    <div className="modal">
+                        <h2>Edit Task</h2>
+                        <input
+                            type="text"
+                            value={editTitle}
+                            onChange={(e) => setEditTitle(e.target.value)}
+                            className="input-field"
+                        />
+                        <textarea
+                            value={editDesc}
+                            onChange={(e) => setEditDesc(e.target.value)}
+                            className="textarea-field"
+                        />
+                        <div className="modal-buttons">
+                            <button className="confirm-btn" onClick={handleUpdateTask}>
+                                Save
+                            </button>
+                            <button className="cancel-btn" onClick={() => setEditingTask(null)}>
                                 Cancel
                             </button>
                         </div>

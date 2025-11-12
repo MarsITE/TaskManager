@@ -187,6 +187,24 @@ body {
     background: #6c757d;
 }
 
+.task-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.edit-btn {
+    background: none;
+    border: none;
+    color: #555;
+    cursor: pointer;
+    font-size: 16px;
+    transition: color 0.2s ease;
+}
+
+.edit-btn:hover {
+    color: #0052cc;
+}
+
 /* ======================== АНІМАЦІЇ ======================== */
 
 @keyframes fadeIn {
