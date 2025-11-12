@@ -1,6 +1,6 @@
-import React, {useEffect, useState} from "react";
-import {DragDropContext, Draggable, Droppable} from "react-beautiful-dnd";
-import {io} from "socket.io-client";
+import React, { useEffect, useState } from "react";
+import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
+import { io } from "socket.io-client";
 
 const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 const REALTIME_URL = import.meta.env.VITE_REALTIME_URL || "http://localhost:3001";
@@ -9,6 +9,7 @@ const socket = io(REALTIME_URL);
 
 const columns = {
     TODO: "To Do",
+    PENDING: "Pending",
     IN_PROGRESS: "In Progress",
     DONE: "Done",
 };
@@ -20,10 +21,12 @@ export default function KanbanBoard() {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [newTaskTitle, setNewTaskTitle] = useState("");
     const [newTaskDesc, setNewTaskDesc] = useState("");
+    const [newTaskStatus, setNewTaskStatus] = useState("TODO");
 
     const [editingTask, setEditingTask] = useState(null);
     const [editTitle, setEditTitle] = useState("");
     const [editDesc, setEditDesc] = useState("");
+    const [editStatus, setEditStatus] = useState("TODO");
 
     useEffect(() => {
         fetch(API_URL)
@@ -54,7 +57,7 @@ export default function KanbanBoard() {
         try {
             await fetch(`${API_URL}/${task.id}`, {
                 method: "PUT",
-                headers: {"Content-Type": "application/json"},
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(task),
             });
             socket.emit("task-updated", task);
@@ -65,10 +68,11 @@ export default function KanbanBoard() {
 
     const handleDragEnd = (result) => {
         if (!result.destination) return;
-        const {source, destination} = result;
+        const { source, destination } = result;
 
         const tasksByStatus = {
             TODO: tasks.filter((t) => t.status === "TODO"),
+            PENDING: tasks.filter((t) => t.status === "PENDING"),
             IN_PROGRESS: tasks.filter((t) => t.status === "IN_PROGRESS"),
             DONE: tasks.filter((t) => t.status === "DONE"),
         };
@@ -79,6 +83,7 @@ export default function KanbanBoard() {
 
         const newTasks = [
             ...tasksByStatus.TODO,
+            ...tasksByStatus.PENDING,
             ...tasksByStatus.IN_PROGRESS,
             ...tasksByStatus.DONE,
         ];
@@ -89,11 +94,15 @@ export default function KanbanBoard() {
 
     const handleCreateTask = async () => {
         if (!newTaskTitle.trim()) return alert("Title cannot be empty!");
-        const newTask = {title: newTaskTitle, description: newTaskDesc, status: "TODO"};
+        const newTask = {
+            title: newTaskTitle,
+            description: newTaskDesc,
+            status: newTaskStatus,
+        };
 
         const res = await fetch(API_URL, {
             method: "POST",
-            headers: {"Content-Type": "application/json"},
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(newTask),
         });
 
@@ -102,21 +111,28 @@ export default function KanbanBoard() {
         setShowCreateModal(false);
         setNewTaskTitle("");
         setNewTaskDesc("");
+        setNewTaskStatus("TODO");
     };
 
     const handleEditTask = (task) => {
         setEditingTask(task);
         setEditTitle(task.title);
         setEditDesc(task.description);
+        setEditStatus(task.status);
     };
 
     const handleUpdateTask = async () => {
-        const updated = {...editingTask, title: editTitle, description: editDesc};
+        const updated = {
+            ...editingTask,
+            title: editTitle,
+            description: editDesc,
+            status: editStatus,
+        };
 
         try {
             const res = await fetch(`${API_URL}/${editingTask.id}`, {
                 method: "PUT",
-                headers: {"Content-Type": "application/json"},
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(updated),
             });
 
@@ -139,7 +155,7 @@ export default function KanbanBoard() {
     const confirmDeleteTask = async () => {
         if (!taskToDelete) return;
         try {
-            await fetch(`${API_URL}/${taskToDelete}`, {method: "DELETE"});
+            await fetch(`${API_URL}/${taskToDelete}`, { method: "DELETE" });
             setTasks((prev) => prev.filter((t) => t.id !== taskToDelete));
             socket.emit("task-deleted", taskToDelete);
         } catch (e) {
@@ -165,6 +181,7 @@ export default function KanbanBoard() {
                             {(provided) => (
                                 <div
                                     className="kanban-column"
+                                    data-status={status}
                                     ref={provided.innerRef}
                                     {...provided.droppableProps}
                                 >
@@ -180,6 +197,7 @@ export default function KanbanBoard() {
                                                 {(provided) => (
                                                     <div
                                                         className="kanban-task"
+                                                        data-status={task.status}
                                                         ref={provided.innerRef}
                                                         {...provided.draggableProps}
                                                         {...provided.dragHandleProps}
@@ -251,6 +269,16 @@ export default function KanbanBoard() {
                             onChange={(e) => setNewTaskDesc(e.target.value)}
                             className="textarea-field"
                         />
+                        <select
+                            value={newTaskStatus}
+                            onChange={(e) => setNewTaskStatus(e.target.value)}
+                            className="input-field"
+                        >
+                            <option value="TODO">To Do</option>
+                            <option value="PENDING">Pending</option>
+                            <option value="IN_PROGRESS">In Progress</option>
+                            <option value="DONE">Done</option>
+                        </select>
                         <div className="modal-buttons">
                             <button className="confirm-btn" onClick={handleCreateTask}>
                                 Create
@@ -279,6 +307,16 @@ export default function KanbanBoard() {
                             onChange={(e) => setEditDesc(e.target.value)}
                             className="textarea-field"
                         />
+                        <select
+                            value={editStatus}
+                            onChange={(e) => setEditStatus(e.target.value)}
+                            className="input-field"
+                        >
+                            <option value="TODO">To Do</option>
+                            <option value="PENDING">Pending</option>
+                            <option value="IN_PROGRESS">In Progress</option>
+                            <option value="DONE">Done</option>
+                        </select>
                         <div className="modal-buttons">
                             <button className="confirm-btn" onClick={handleUpdateTask}>
                                 Save

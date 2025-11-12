@@ -35,6 +35,7 @@ public class Task {
 
     public enum Status {
         TODO,
+        PENDING,
         IN_PROGRESS,
         DONE
     }

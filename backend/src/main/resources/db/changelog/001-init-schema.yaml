@@ -1,0 +1,82 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1-init-schema
+      author: dev
+      changes:
+        # ================= TABLE: users =================
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: username
+                  type: VARCHAR(100)
+              - column:
+                  name: email
+                  type: VARCHAR(150)
+              - column:
+                  name: password
+                  type: VARCHAR(255)
+
+        # ================= TABLE: projects =================
+        - createTable:
+            tableName: projects
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(150)
+              - column:
+                  name: description
+                  type: TEXT
+
+        # ================= TABLE: tasks =================
+        - createTable:
+            tableName: tasks
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: title
+                  type: VARCHAR(255)
+              - column:
+                  name: description
+                  type: TEXT
+              - column:
+                  name: status
+                  type: VARCHAR(50)
+              - column:
+                  name: project_id
+                  type: BIGINT
+              - column:
+                  name: user_id
+                  type: BIGINT
+
+        # ================= FOREIGN KEYS =================
+        - addForeignKeyConstraint:
+            baseTableName: tasks
+            baseColumnNames: project_id
+            referencedTableName: projects
+            referencedColumnNames: id
+            constraintName: fk_tasks_projects
+
+        - addForeignKeyConstraint:
+            baseTableName: tasks
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_tasks_users
