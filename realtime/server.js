@@ -22,6 +22,10 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         console.log('User disconnected:', socket.id);
     });
+
+    socket.on("task-deleted", (id) => {
+        socket.broadcast.emit("task-deleted", id);
+    });
 });
 
 server.listen(3001, () => {

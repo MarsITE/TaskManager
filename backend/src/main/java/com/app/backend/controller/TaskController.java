@@ -4,6 +4,7 @@ import com.app.backend.dto.TaskDTO;
 import com.app.backend.model.Task;
 import com.app.backend.service.TaskService;
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -46,6 +47,12 @@ public class TaskController {
         task.setDescription(taskDetails.getDescription());
         task.setStatus(taskDetails.getStatus());
         return taskService.saveTask(task);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
+        taskService.deleteTask(id);
+        return ResponseEntity.noContent().build();
     }
 }
 
