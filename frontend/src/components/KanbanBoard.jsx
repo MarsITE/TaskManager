@@ -4,7 +4,6 @@ import {io} from "socket.io-client";
 
 const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 const REALTIME_URL = import.meta.env.VITE_REALTIME_URL || "http://localhost:3001";
-
 const API_URL = `${BACKEND_URL}/api/tasks`;
 const socket = io(REALTIME_URL);
 
@@ -18,6 +17,9 @@ export default function KanbanBoard() {
     const [tasks, setTasks] = useState([]);
     const [taskToDelete, setTaskToDelete] = useState(null);
     const [showModal, setShowModal] = useState(false);
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [newTaskTitle, setNewTaskTitle] = useState("");
+    const [newTaskDesc, setNewTaskDesc] = useState("");
 
     useEffect(() => {
         fetch(API_URL)
@@ -61,13 +63,6 @@ export default function KanbanBoard() {
         if (!result.destination) return;
         const {source, destination} = result;
 
-        if (
-            source.droppableId === destination.droppableId &&
-            source.index === destination.index
-        ) {
-            return;
-        }
-
         const tasksByStatus = {
             TODO: tasks.filter((t) => t.status === "TODO"),
             IN_PROGRESS: tasks.filter((t) => t.status === "IN_PROGRESS"),
@@ -89,23 +84,20 @@ export default function KanbanBoard() {
     };
 
     const handleCreateTask = async () => {
-        const title = prompt("Enter task title:");
-        if (!title) return;
-        const description = prompt("Enter task description:") || "";
+        if (!newTaskTitle.trim()) return alert("Title cannot be empty!");
+        const newTask = {title: newTaskTitle, description: newTaskDesc, status: "TODO"};
 
-        const newTask = {title, description, status: "TODO"};
         const res = await fetch(API_URL, {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify(newTask),
         });
+
         const saved = await res.json();
         setTasks([...tasks, saved]);
-    };
-
-    const openDeleteModal = (id) => {
-        setTaskToDelete(id);
-        setShowModal(true);
+        setShowCreateModal(false);
+        setNewTaskTitle("");
+        setNewTaskDesc("");
     };
 
     const confirmDeleteTask = async () => {
@@ -124,10 +116,13 @@ export default function KanbanBoard() {
 
     return (
         <div className="kanban-board">
-            <h1>Kanban Board</h1>
-            <button onClick={handleCreateTask} className="add-task">
-                + Add Task
-            </button>
+            <div className="board-header">
+                <div className="header-left">
+                    <button onClick={() => setShowCreateModal(true)} className="add-task">
+                        + Add Task
+                    </button>
+                </div>
+            </div>
 
             <DragDropContext onDragEnd={handleDragEnd}>
                 <div className="kanban-columns">
@@ -159,7 +154,10 @@ export default function KanbanBoard() {
                                                             <strong>{task.title}</strong>
                                                             <button
                                                                 className="delete-btn"
-                                                                onClick={() => openDeleteModal(task.id)}
+                                                                onClick={() => {
+                                                                    setTaskToDelete(task.id);
+                                                                    setShowModal(true);
+                                                                }}
                                                                 title="Delete task"
                                                             >
                                                                 🗑️
@@ -178,7 +176,7 @@ export default function KanbanBoard() {
                 </div>
             </DragDropContext>
 
-            {/* 🪟 Модальне вікно */}
+            {/* Confirm Delete Modal */}
             {showModal && (
                 <div className="modal-overlay">
                     <div className="modal">
@@ -188,6 +186,39 @@ export default function KanbanBoard() {
                                 Yes, delete
                             </button>
                             <button className="cancel-btn" onClick={() => setShowModal(false)}>
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Create Task Modal */}
+            {showCreateModal && (
+                <div className="modal-overlay">
+                    <div className="modal">
+                        <h2>Create New Task</h2>
+                        <input
+                            type="text"
+                            placeholder="Task title"
+                            value={newTaskTitle}
+                            onChange={(e) => setNewTaskTitle(e.target.value)}
+                            className="input-field"
+                        />
+                        <textarea
+                            placeholder="Task description"
+                            value={newTaskDesc}
+                            onChange={(e) => setNewTaskDesc(e.target.value)}
+                            className="textarea-field"
+                        />
+                        <div className="modal-buttons">
+                            <button className="confirm-btn" onClick={handleCreateTask}>
+                                Create
+                            </button>
+                            <button
+                                className="cancel-btn"
+                                onClick={() => setShowCreateModal(false)}
+                            >
                                 Cancel
                             </button>
                         </div>
