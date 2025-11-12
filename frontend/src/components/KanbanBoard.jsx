@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import React, {useEffect, useState} from "react";
+import {DragDropContext, Draggable, Droppable} from "react-beautiful-dnd";
 
 const API_URL = `${import.meta.env.VITE_API_URL || "http://localhost:8080"}/api/tasks`;
 
@@ -28,11 +28,11 @@ export default function KanbanBoard() {
 
     const handleDragEnd = (result) => {
         if (!result.destination) return;
-        const { draggableId, destination } = result;
+        const {draggableId, destination} = result;
 
         const updatedTasks = tasks.map((task) => {
             if (task.id.toString() === draggableId) {
-                const updated = { ...task, status: destination.droppableId };
+                const updated = {...task, status: destination.droppableId};
                 updateTaskStatus(updated);
                 return updated;
             }
@@ -46,7 +46,7 @@ export default function KanbanBoard() {
         try {
             await fetch(`${API_URL}/${task.id}`, {
                 method: "PUT",
-                headers: { "Content-Type": "application/json" },
+                headers: {"Content-Type": "application/json"},
                 body: JSON.stringify(task),
             });
         } catch (e) {
@@ -57,10 +57,10 @@ export default function KanbanBoard() {
     const handleCreateTask = async () => {
         const title = prompt("Enter task title:");
         if (!title) return;
-        const newTask = { title, description: "", status: "TODO" };
+        const newTask = {title, description: "", status: "TODO"};
         const res = await fetch(API_URL, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {"Content-Type": "application/json"},
             body: JSON.stringify(newTask),
         });
         const saved = await res.json();

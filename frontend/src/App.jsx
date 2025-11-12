@@ -4,8 +4,8 @@ import KanbanBoard from "./components/KanbanBoard";
 function App() {
     return (
         <div>
-            <h1 style={{ textAlign: "center" }}>Task Manager</h1>
-            <KanbanBoard />
+            <h1 style={{textAlign: "center"}}>Task Manager</h1>
+            <KanbanBoard/>
         </div>
     );
 }
