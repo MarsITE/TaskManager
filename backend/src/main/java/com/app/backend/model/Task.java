@@ -23,7 +23,6 @@ public class Task {
     @Enumerated(EnumType.STRING)
     private Status status;
 
-    // Task.java
     @ManyToOne
     @JoinColumn(name = "project_id")
     @JsonBackReference
@@ -40,4 +39,3 @@ public class Task {
         DONE
     }
 }
-

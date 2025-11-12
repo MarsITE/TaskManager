@@ -1,8 +1,8 @@
 package com.app.backend.service;
 
-import org.springframework.stereotype.Service;
 import com.app.backend.model.Task;
 import com.app.backend.repository.TaskRepository;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
@@ -26,4 +26,3 @@ public class TaskService {
         return taskRepository.findById(id).orElseThrow();
     }
 }
-

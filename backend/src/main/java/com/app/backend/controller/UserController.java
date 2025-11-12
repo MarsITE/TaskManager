@@ -1,8 +1,8 @@
 package com.app.backend.controller;
 
-import org.springframework.web.bind.annotation.*;
 import com.app.backend.model.User;
 import com.app.backend.repository.UserRepository;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 

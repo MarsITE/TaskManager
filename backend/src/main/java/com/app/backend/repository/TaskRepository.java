@@ -1,7 +1,7 @@
 package com.app.backend.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 import com.app.backend.model.Task;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface TaskRepository extends JpaRepository<Task, Long> { }
-
+public interface TaskRepository extends JpaRepository<Task, Long> {
+}

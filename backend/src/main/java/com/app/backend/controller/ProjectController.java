@@ -1,8 +1,8 @@
 package com.app.backend.controller;
 
-import org.springframework.web.bind.annotation.*;
 import com.app.backend.model.Project;
 import com.app.backend.repository.ProjectRepository;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -26,4 +26,3 @@ public class ProjectController {
         return projectRepository.save(project);
     }
 }
-
