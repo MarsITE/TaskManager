@@ -1,1 +1,1 @@
-# TaskManager (SpringBoot + React)
+# TaskManager (SpringBoot + React + Docker)
